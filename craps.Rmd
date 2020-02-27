@@ -41,8 +41,20 @@ Does the code for rolling dice work? One way to check is to see if a simulation 
 # are behaving correctly. I need to put the results in a tibble, since that is
 # what ggplot wants.
 
+contest_size <- 6
+number_of_contests <- 1000
+n <- contest_size * number_of_contests
 
-x <- tibble(results = map_int(1:100000, ~ roll_two_dice()))
+x <- tibble(john_mark = map_int(1:n, ~ roll_two_dice()),
+            ishan = map_int(1:n, ~ roll_two_dice())) %>% 
+        mutate(ishan_craps = ifelse(ishan %in% c(7,11),1,0),
+              john_mark_craps = ifelse(john_mark %in% c(7,11),1,0),
+              winner = (ifelse(john_mark_craps & !ishan_craps, "John Mark",
+                     ifelse(!john_mark_craps & ishan_craps, "Ishan", "Tie")))) %>% 
+  mutate(contest = rep(1:number_of_contests, each = contest_size)) %>% 
+  group_by(contest) %>% 
+  summarize(john_mark_craps = sum(winner == "John Mark")) %>% 
+  count(john_mark_craps >= 4)
 
 # Once I have a tibble, the standard ggplot works. Would be nice to have the
 # x-axis labels corresponding to the actual roll values, like 2, 3 and so on.
@@ -64,6 +76,7 @@ x %>%
 ```{r simulation}
 # Assume that John Mark is honest. Yeah! How surprising is it to roll 6 winners?
 # How unusual is it to win against Ishan 4 to 0?
+
 
 
 ```
